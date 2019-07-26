@@ -24,7 +24,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -47,9 +49,11 @@ public class PartyActivity extends AppCompatActivity {
     private List<ModelClass> modelClassList;
 
     private Button copyButton;
+    private List<String> queueSongIds = new ArrayList<String>();
 
     private ClipboardManager clipboardManager;
     private static final String TAG = "Party_Activity";
+    private Map<String, ModelClass> songIdToMetaMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +73,7 @@ public class PartyActivity extends AppCompatActivity {
         setDeepLinkState();
 
         handleQueue();
+        setupFirebase();
     }
 
     public void handleSearch(){
@@ -113,16 +118,14 @@ public class PartyActivity extends AppCompatActivity {
         layoutManager.setOrientation(RecyclerView.VERTICAL);
 
         recyclerView = findViewById(R.id.recycler_view);
-
-        recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(layoutManager);
 
         modelClassList = new ArrayList<>();
-        modelClassList.add(new ModelClass(1, R.drawable.ic_launcher_background, "Song 1", "Singer 1"));
-        modelClassList.add(new ModelClass(2, R.drawable.ic_launcher_background, "Song 2", "Singer 2"));
-        modelClassList.add(new ModelClass(3, R.drawable.ic_launcher_background, "Song 3", "Singer 3"));
-        modelClassList.add(new ModelClass(4, R.drawable.ic_launcher_background, "Song 4", "Singer 4"));
-        modelClassList.add(new ModelClass(5, R.drawable.ic_launcher_background, "Song 5", "Singer 5"));
+//        modelClassList.add(new ModelClass(1, R.drawable.ic_launcher_background, "Song 1", "Singer 1"));
+//        modelClassList.add(new ModelClass(2, R.drawable.ic_launcher_background, "Song 2", "Singer 2"));
+//        modelClassList.add(new ModelClass(3, R.drawable.ic_launcher_background, "Song 3", "Singer 3"));
+//        modelClassList.add(new ModelClass(4, R.drawable.ic_launcher_background, "Song 4", "Singer 4"));
+//        modelClassList.add(new ModelClass(5, R.drawable.ic_launcher_background, "Song 5", "Singer 5"));
 
         Adapter queueAdapter = new Adapter(modelClassList);
         recyclerView.setAdapter(queueAdapter);
@@ -152,21 +155,23 @@ public class PartyActivity extends AppCompatActivity {
     }
 
     public void setupFirebase() {
-        List<String> queue = new ArrayList<String>();
-        queue.add("song 1");
-        queue.add("song 2");
-        queue.add("song 3");
-        queue.add("song 4");
-        queue.add("song 5");
 
-        database.getReference().child("users").child(userId).child("queue").addValueEventListener(new ValueEventListener() {
+        database.getReference().child("users").child(hostId).child("queue").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                modelClassList.clear();
+                Map<Integer, String> snapshotMap = (Map<Integer, String>) dataSnapshot.getValue();
+                Collection<String> queueSongObjects =  snapshotMap.values();
+                for (String songId : queueSongObjects){
+//                    String songId = ((List<String>) songObject.values()).get(0);
 
-                List<String> queue = (List<String>) dataSnapshot.getValue();
-                String q = "";
-                for (String s : queue) {
-                    q += s + " # ";
+//                    ModelClass songMeta = songIdToMetaMap.get(songId);
+//                    if(null==songMeta){
+//                        songMeta = getMetaForSong(songId);
+//                    }
+//                    songIdToMetaMap.put(songId, songMeta);
+//                    modelClassList.add(songMeta);
+                    modelClassList.add(new ModelClass(songId, "", songId, ""));
                 }
             }
 
@@ -177,6 +182,11 @@ public class PartyActivity extends AppCompatActivity {
         });
 
     }
+
+    public ModelClass getMetaForSong(String songId){
+        return null;
+    }
+
 
     public void SearchApi() {
         NetworkService.getInstance()
