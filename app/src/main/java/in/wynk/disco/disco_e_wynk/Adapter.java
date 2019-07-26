@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -69,8 +70,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         private ImageView imageView;
         private TextView title;
         private TextView body;
-        private Button playButton;
-        private Button deleteButton;
+        private ImageButton playButton;
+        private ImageButton deleteButton;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
