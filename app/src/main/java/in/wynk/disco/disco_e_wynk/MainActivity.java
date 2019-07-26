@@ -1,5 +1,6 @@
 package in.wynk.disco.disco_e_wynk;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -18,8 +19,8 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Main_Activity";
     private TextView mTextMessage;
-    private SharedPreferences mPreferences;
-    private SharedPreferences.Editor mEditor;
+    private static SharedPreferences mPreferences;
+    private static SharedPreferences.Editor mEditor;
 
     private Button.OnClickListener mOnHostClickListener = new View.OnClickListener() {
         @Override
@@ -40,23 +41,25 @@ public class MainActivity extends AppCompatActivity {
         View button = findViewById(R.id.host_button);
         button.setOnClickListener(mOnHostClickListener);
 
-        setSharedPreferences("uid");
+        setUid(this);
 
     }
 
-    public void setSharedPreferences(String uidKey) {
-        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+    public static void setUid(Context ctx) {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
         mEditor = mPreferences.edit();
-        String value = mPreferences.getString(uidKey, null);
-
-        Log.d(TAG, "setSharedPreferences: key: " + uidKey + "value: " + value);
-
+        String value = getUid(ctx);
+        Log.d(TAG, "setSharedPreferences: " + "value: " + value);
         if (value == null) {
             String randomString = UUID.randomUUID().toString();
-            mEditor.putString(uidKey, randomString);
+            mEditor.putString("uid", randomString);
             mEditor.commit();
         }
+    }
 
+    public static String getUid(Context ctx){
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
+        return mPreferences.getString("uid", null);
     }
 
 }
