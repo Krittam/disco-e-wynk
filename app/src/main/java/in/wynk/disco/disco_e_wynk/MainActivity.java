@@ -1,13 +1,16 @@
 package in.wynk.disco.disco_e_wynk;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
+
 
     private TextView mTextMessage;
 
@@ -30,7 +33,10 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
     };
-
+    public void goToAnActivity(View view) {
+        Intent intent = new Intent(this, PlayerActivity.class);
+        startActivity(intent);
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
