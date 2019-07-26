@@ -1,52 +1,32 @@
 package in.wynk.disco.disco_e_wynk;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.design.widget.BottomNavigationView;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.google.gson.Gson;
 
-import java.util.logging.Logger;
+import java.util.UUID;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.view.MenuItem;
-import android.widget.LinearLayout;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Main_Activity";
     private TextView mTextMessage;
-
+    private SharedPreferences mPreferences;
+    private SharedPreferences.Editor mEditor;
 
     private Button.OnClickListener mOnHostClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             Intent myIntent = new Intent(MainActivity.this, PartyActivity.class);
             Bundle extras = new Bundle();
-            extras.putBoolean("isHost",true);
+            extras.putBoolean("isHost", true);
             myIntent.putExtras(extras);
             MainActivity.this.startActivity(myIntent);
         }
@@ -57,18 +37,26 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        String userId = "krittam_kothari";
-
         View button = findViewById(R.id.host_button);
         button.setOnClickListener(mOnHostClickListener);
 
+        setSharedPreferences("uid");
+
     }
 
+    public void setSharedPreferences(String uidKey) {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mEditor = mPreferences.edit();
+        String value = mPreferences.getString(uidKey, null);
 
+        Log.d(TAG, "setSharedPreferences: key: " + uidKey + "value: " + value);
 
+        if (value == null) {
+            String randomString = UUID.randomUUID().toString();
+            mEditor.putString(uidKey, randomString);
+            mEditor.commit();
+        }
 
-
-
+    }
 
 }
