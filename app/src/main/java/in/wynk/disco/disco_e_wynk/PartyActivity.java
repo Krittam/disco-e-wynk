@@ -54,6 +54,7 @@ public class PartyActivity extends AppCompatActivity {
     private ClipboardManager clipboardManager;
     private static final String TAG = "Party_Activity";
     private Map<String, ModelClass> songIdToMetaMap;
+    Adapter queueAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,13 +122,7 @@ public class PartyActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         modelClassList = new ArrayList<>();
-//        modelClassList.add(new ModelClass(1, R.drawable.ic_launcher_background, "Song 1", "Singer 1"));
-//        modelClassList.add(new ModelClass(2, R.drawable.ic_launcher_background, "Song 2", "Singer 2"));
-//        modelClassList.add(new ModelClass(3, R.drawable.ic_launcher_background, "Song 3", "Singer 3"));
-//        modelClassList.add(new ModelClass(4, R.drawable.ic_launcher_background, "Song 4", "Singer 4"));
-//        modelClassList.add(new ModelClass(5, R.drawable.ic_launcher_background, "Song 5", "Singer 5"));
-
-        Adapter queueAdapter = new Adapter(modelClassList);
+        queueAdapter = new Adapter(modelClassList);
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.notifyDataSetChanged();
     }
@@ -164,14 +159,20 @@ public class PartyActivity extends AppCompatActivity {
                 Collection<String> queueSongObjects =  snapshotMap.values();
                 for (String songId : queueSongObjects){
 //                    String songId = ((List<String>) songObject.values()).get(0);
-
-//                    ModelClass songMeta = songIdToMetaMap.get(songId);
-//                    if(null==songMeta){
+                    ModelClass object;
+                    ModelClass songMeta = songIdToMetaMap.get(songId);
+                    if(null==songMeta){
 //                        songMeta = getMetaForSong(songId);
-//                    }
-//                    songIdToMetaMap.put(songId, songMeta);
-//                    modelClassList.add(songMeta);
-                    modelClassList.add(new ModelClass(songId, "", songId, ""));
+                        object = new ModelClass(songId, "", songId, "");
+//                        getContentPl;
+                    }
+                    else{
+                        object = songIdToMetaMap.get(songId);
+                        modelClassList.add(object);
+                        queueAdapter.notifyDataSetChanged();
+//                        queueAdapter.notifyItemRangeChanged();
+                    }
+
                 }
             }
 
