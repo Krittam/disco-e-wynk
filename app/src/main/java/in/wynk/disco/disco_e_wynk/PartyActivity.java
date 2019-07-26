@@ -1,16 +1,22 @@
 package in.wynk.disco.disco_e_wynk;
 
+import android.content.Context;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import android.widget.SearchView;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,27 +36,81 @@ public class PartyActivity extends AppCompatActivity {
     private List<String> queue;
     FirebaseDatabase database;
     private String hostId;
+    SearchView searchView;
+    ListView listView;
+    ArrayList<String> list;
+    ArrayAdapter< String > searchAdapter;
+    Context context;
+
 
     private RecyclerView recyclerView;
+    private EditText copyLinkTextView;
     private List<ModelClass> modelClassList;
 
+    private Button copyButton;
+
+    private ClipboardManager clipboardManager;
     private static final String TAG = "Party_Activity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_party);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         isHost = getIntent().getExtras().getBoolean("isHost", false);
-        userId = "default_userId";
-        hostId = "default_hostId";
+        MainActivity.setUid(this);
+        userId = MainActivity.getUid(this);
+        hostId = userId;
         database = FirebaseDatabase.getInstance();
+        clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        ;
+        recyclerView = findViewById(R.id.recycler_view);
+        copyLinkTextView = findViewById(R.id.copyLinkText);
+
+        context=this;
+        searchView = (SearchView) findViewById(R.id.searchView);
+        listView = (ListView) findViewById(R.id.lv1);
+        list = new ArrayList<>();
+        searchAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1,list);
+        listView.setAdapter(searchAdapter);
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                Log.d("tag", "hey");
+                list.add("dilar2");
+                list.add("dilbar3");
+                list.add("dilbar3");
+                list.add("dilbar3");
+                searchAdapter.notifyDataSetChanged();
+                Log.d("tag", query);
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                //    searchAdapter.getFilter().filter(newText);
+                return false;
+            }
+        });
+
+        if (isHost) {
+            copyLinkTextView.setText(getDeeplLink(userId));
+        } else {
+            copyLinkTextView.setVisibility(View.GONE);
+        }
+
+        copyButton = findViewById(R.id.copyButton);
+        copyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                copyToClipboard(copyLinkTextView.getText().toString());
+            }
+        });
 
 
         recyclerView = findViewById(R.id.recycler_view);
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-
         recyclerView.setLayoutManager(layoutManager);
 
         modelClassList = new ArrayList<>();
@@ -60,19 +120,38 @@ public class PartyActivity extends AppCompatActivity {
         modelClassList.add(new ModelClass(4, R.drawable.ic_launcher_background, "Song 4", "Singer 4"));
         modelClassList.add(new ModelClass(5, R.drawable.ic_launcher_background, "Song 5", "Singer 5"));
 
-        Adapter adapter = new Adapter(modelClassList);
-        recyclerView.setAdapter(adapter);
+        Adapter queueAdapter = new Adapter(modelClassList);
+        recyclerView.setAdapter(queueAdapter);
+        queueAdapter.notifyDataSetChanged();
 
-        adapter.notifyDataSetChanged();
+
+
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                //TODO implement song enque
+                Log.d("tag", Integer.toString(position));
+
+                list.clear();
+                searchView.setQuery("", false);
+                searchView.clearFocus();
+                searchAdapter.notifyDataSetInvalidated();
+            }
+        });
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
+        MainActivity.setUid(this);
         Intent in = getIntent();
         Uri data = in.getData();
         System.out.println("deeplinkingcallback   :- " + data);
+        if (data != null) {
+            isHost = false;
+            String[] temp = data.toString().split("=");
+            hostId = temp[1];
+        }
     }
 
 
@@ -83,7 +162,6 @@ public class PartyActivity extends AppCompatActivity {
     public void removeFromQueue(String contentId) {
         database.getReference().child("users").child(hostId).child("queue").push().setValue(contentId);
     }
-
 
     public void setupFirebase() {
         List<String> queue = new ArrayList<String>();
@@ -130,15 +208,22 @@ public class PartyActivity extends AppCompatActivity {
                             }
                         }
                         songItem.getItems();
-
                     }
-
-
                     @Override
                     public void onFailure(Call<SearchResponse> call, Throwable t) {
                         Log.d(TAG, t.getLocalizedMessage());
                     }
                 });
     }
+
+    public String getDeeplLink(String uid) {
+        return String.format("http://discoewynk.com/uid=%s", uid);
+    }
+
+    public void copyToClipboard(String text) {
+        ClipData clipData = ClipData.newPlainText("Source Text", text);
+        clipboardManager.setPrimaryClip(clipData);
+    }
+
 
 }
