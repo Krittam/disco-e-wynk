@@ -12,60 +12,64 @@ import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.Toast;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.TextView;
 import java.util.ArrayList;
+import java.util.UUID;
+
 
 public class MainActivity extends AppCompatActivity {
-    SearchView searchView;
-    ListView listView;
-    ArrayList<String> list;
-    ArrayAdapter< String > adapter;
-    Context context;
+
+    private static final String TAG = "Main_Activity";
+    private TextView mTextMessage;
+    private SharedPreferences mPreferences;
+    private SharedPreferences.Editor mEditor;
+
+    private Button.OnClickListener mOnHostClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            Intent myIntent = new Intent(MainActivity.this, PartyActivity.class);
+            Bundle extras = new Bundle();
+            extras.putBoolean("isHost", true);
+            myIntent.putExtras(extras);
+            MainActivity.this.startActivity(myIntent);
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        context=this;
-        searchView = (SearchView) findViewById(R.id.searchView);
-        listView = (ListView) findViewById(R.id.lv1);
-        list = new ArrayList<>();
-        adapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1,list);
-        listView.setAdapter(adapter);
 
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                if(true){
-                    Log.d("tag", "hey");
-                    list.add("dilar2");
-                    list.add("dilbar3");
-                    list.add("dilbar3");
-                    list.add("dilbar3");
-                    adapter.notifyDataSetChanged();
-                    Log.d("tag", query);
-                }else{
-                    Toast.makeText(MainActivity.this, "No Match found",Toast.LENGTH_LONG).show();
-                }
-                return false;
-            }
+        View button = findViewById(R.id.host_button);
+        button.setOnClickListener(mOnHostClickListener);
 
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                //    adapter.getFilter().filter(newText);
-                return false;
-            }
-        });
+        setSharedPreferences("uid");
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                //TODO implement song enque
-                Log.d("tag", Integer.toString(position));
-
-                list.clear();
-                searchView.setQuery("", false);
-                searchView.clearFocus();
-                adapter.notifyDataSetInvalidated();
-            }
-        });
     }
+
+    public void setSharedPreferences(String uidKey) {
+        mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        mEditor = mPreferences.edit();
+        String value = mPreferences.getString(uidKey, null);
+
+        Log.d(TAG, "setSharedPreferences: key: " + uidKey + "value: " + value);
+
+        if (value == null) {
+            String randomString = UUID.randomUUID().toString();
+            mEditor.putString(uidKey, randomString);
+            mEditor.commit();
+        }
+
+    }
+
+
 }
