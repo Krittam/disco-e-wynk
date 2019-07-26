@@ -38,8 +38,8 @@ public class PartyActivity extends AppCompatActivity {
     private String hostId;
     SearchView searchView;
     ListView listView;
-    ArrayList<String> list;
-    ArrayAdapter< String > searchAdapter;
+    ArrayList<Song> list;
+    ArrayAdapter< Song > searchAdapter;
     Context context;
 
     private RecyclerView recyclerView;
@@ -61,6 +61,7 @@ public class PartyActivity extends AppCompatActivity {
         userId = MainActivity.getUid(this);
         hostId = userId;
         database = FirebaseDatabase.getInstance();
+        context=this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
         handleSearch();
@@ -71,23 +72,17 @@ public class PartyActivity extends AppCompatActivity {
     }
 
     public void handleSearch(){
-        context=this;
         searchView = (SearchView) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.lv1);
         list = new ArrayList<>();
-        searchAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1,list);
+        searchAdapter = new ArrayAdapter<Song>(context, android.R.layout.simple_list_item_1,list);
         listView.setAdapter(searchAdapter);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Log.d("tag", "hey");
+                searchApi(query);
                 list.clear();
-                list.add("dilar2");
-                list.add("dilbar3");
-                list.add("dilbar3");
-                list.add("dilbar3");
-                searchAdapter.notifyDataSetChanged();
                 Log.d("tag", query);
                 return false;
             }
@@ -104,7 +99,7 @@ public class PartyActivity extends AppCompatActivity {
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 //TODO implement song enque
                 Log.d("tag", Integer.toString(position));
-
+                enQueue(list.get(position).getId());
                 list.clear();
                 searchView.setQuery("", false);
                 searchView.clearFocus();
@@ -199,7 +194,8 @@ public class PartyActivity extends AppCompatActivity {
                                 break;
                             }
                         }
-                        songItem.getItems();
+
+                        list.addAll(songItem.getItems());
                     }
                     @Override
                     public void onFailure(Call<SearchResponse> call, Throwable t) {
@@ -233,5 +229,66 @@ public class PartyActivity extends AppCompatActivity {
             copyLinkTextView.setVisibility(View.GONE);
             copyButton.setVisibility(View.GONE);
         }
+    }
+
+
+    public void searchApi(String query) {
+        NetworkService.getInstance()
+                .getSearchApi()
+                .getSearchResults(query)
+                .enqueue(new Callback<SearchResponse>() {
+
+                    @Override
+                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
+                        SearchResponse searchResponse = response.body();
+                        Item songItem = null;
+                        for (Item item : searchResponse.getItems()) {
+                            if ("SONG".equals(item.getId())) {
+                                songItem = item;
+                                break;
+                            }
+                        }
+                        list.addAll(songItem.getItems());
+                        searchAdapter.notifyDataSetChanged();
+
+//                        Log.e(TAG, songItem.getItems().toString());
+                        searchApiHandler(songItem.getItems());
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<SearchResponse> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
+
+    void searchApiHandler(List<Song> searchResult){
+
+//        getContentPlaybackApi(searchResult.get(1).getId());
+    }
+
+    public void getContentPlaybackApi(String songId) {
+        NetworkService.getInstance()
+                .getContentApi()
+                .getPlaybackResult(songId, "daTr6PpO1NmAesWNG67VK8rE95s2:f9eETGydcRMJ998KWd0ErjnTdIw=", "0203ac820c37ce23/Android/28/188/2.0.7.1")
+                .enqueue(new Callback<ContentPlaybackPojo>() {
+
+                    @Override
+                    public void onResponse(Call<ContentPlaybackPojo> call, Response<ContentPlaybackPojo> response) {
+                        ContentPlaybackPojo contentPlaybackResponse = response.body();
+                        playSong(contentPlaybackResponse.getUrl());
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<ContentPlaybackPojo> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
+
+    void playSong(String contentPlaybackUrl) {
+        Log.e(TAG, contentPlaybackUrl);
     }
 }

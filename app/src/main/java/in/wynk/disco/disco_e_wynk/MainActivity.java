@@ -50,32 +50,17 @@ public class MainActivity extends AppCompatActivity {
 
         setUid(this);
 
-//        getContentFromApi();
-//        getContentPlaybackApi();
-        SearchApi("dilbar");
-
 
     }
 
-    void searchApiHandler(List<Song> searchResult){
 
-        for(Song song : searchResult){
-            Log.e(TAG, song.getId());
-        }
-
-//        Log.e(TAG, searchResult.get(0).getId());
-
-        getContentPlaybackApi(searchResult.get(1).getId());
-    }
 
 //    void contentHandler(String oStreamingUrl){
 //        Log.e(TAG, oStreamingUrl);
 //        getContentPlaybackApi(oStreamingUrl);
 //    }
 
-    void contentPlaybackHandler(String contentPlaybackUrl) {
-        Log.e(TAG, contentPlaybackUrl);
-    }
+
 
     public static void setUid(Context ctx) {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -94,35 +79,7 @@ public class MainActivity extends AppCompatActivity {
         return mPreferences.getString("uid", null);
     }
 
-    public void SearchApi(String query) {
-        NetworkService.getInstance()
-                .getSearchApi()
-                .getSearchResults(query)
-                .enqueue(new Callback<SearchResponse>() {
 
-                    @Override
-                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
-                        SearchResponse searchResponse = response.body();
-                        Item songItem = null;
-                        for (Item item : searchResponse.getItems()) {
-                            if ("SONG".equals(item.getId())) {
-                                songItem = item;
-                                break;
-                            }
-                        }
-                        songItem.getItems();
-
-//                        Log.e(TAG, songItem.getItems().toString());
-                        searchApiHandler(songItem.getItems());
-                    }
-
-
-                    @Override
-                    public void onFailure(Call<SearchResponse> call, Throwable t) {
-                        Log.d(TAG, t.getLocalizedMessage());
-                    }
-                });
-    }
 
 
 //    public void getContentFromApi(final String songId) {
@@ -149,23 +106,4 @@ public class MainActivity extends AppCompatActivity {
 //    }
 
 
-    public void getContentPlaybackApi(String songId) {
-        NetworkService.getInstance()
-                .getContentApi()
-                .getPlaybackResult(songId, "daTr6PpO1NmAesWNG67VK8rE95s2:f9eETGydcRMJ998KWd0ErjnTdIw=", "0203ac820c37ce23/Android/28/188/2.0.7.1")
-                .enqueue(new Callback<ContentPlaybackPojo>() {
-
-                    @Override
-                    public void onResponse(Call<ContentPlaybackPojo> call, Response<ContentPlaybackPojo> response) {
-                        ContentPlaybackPojo contentPlaybackResponse = response.body();
-                        contentPlaybackHandler(contentPlaybackResponse.getUrl());
-                    }
-
-
-                    @Override
-                    public void onFailure(Call<ContentPlaybackPojo> call, Throwable t) {
-                        Log.d(TAG, t.getLocalizedMessage());
-                    }
-                });
-    }
 }
