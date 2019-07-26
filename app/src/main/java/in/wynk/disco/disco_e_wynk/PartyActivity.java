@@ -6,7 +6,10 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 
 import com.google.firebase.database.DataSnapshot;
@@ -17,6 +20,10 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class PartyActivity extends AppCompatActivity {
     private Boolean isHost;
     private String userId;
@@ -24,24 +31,39 @@ public class PartyActivity extends AppCompatActivity {
     FirebaseDatabase database;
     private String hostId;
 
+    private RecyclerView recyclerView;
+    private List<ModelClass> modelClassList;
+
+    private static final String TAG = "Party_Activity";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_party);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
         isHost = getIntent().getExtras().getBoolean("isHost", false);
         userId = "default_userId";
         hostId = "default_hostId";
         database = FirebaseDatabase.getInstance();
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+
+
+        recyclerView = findViewById(R.id.recycler_view);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+
+        recyclerView.setLayoutManager(layoutManager);
+
+        modelClassList = new ArrayList<>();
+        modelClassList.add(new ModelClass(1, R.drawable.ic_launcher_background, "Song 1", "Singer 1"));
+        modelClassList.add(new ModelClass(2, R.drawable.ic_launcher_background, "Song 2", "Singer 2"));
+        modelClassList.add(new ModelClass(3, R.drawable.ic_launcher_background, "Song 3", "Singer 3"));
+        modelClassList.add(new ModelClass(4, R.drawable.ic_launcher_background, "Song 4", "Singer 4"));
+        modelClassList.add(new ModelClass(5, R.drawable.ic_launcher_background, "Song 5", "Singer 5"));
+
+        Adapter adapter = new Adapter(modelClassList);
+        recyclerView.setAdapter(adapter);
+
+        adapter.notifyDataSetChanged();
     }
 
     @Override
@@ -50,27 +72,20 @@ public class PartyActivity extends AppCompatActivity {
 
         Intent in = getIntent();
         Uri data = in.getData();
-        System.out.println("deeplinkingcallback   :- "+data);
+        System.out.println("deeplinkingcallback   :- " + data);
     }
 
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        // Inflate the menu; this adds items to the action bar if it is present.
-//        getMenuInflater().inflate(R.menu.menu_main, menu);
-//        return true;
-//    }
-//
-    public void enQueue(String contentId){
+    public void enQueue(String contentId) {
         database.getReference().child("users").child(hostId).child("queue").push().setValue(contentId);
     }
 
-    public void removeFromQueue(String contentId){
+    public void removeFromQueue(String contentId) {
         database.getReference().child("users").child(hostId).child("queue").push().setValue(contentId);
     }
 
 
-    public void setupFirebase(){
+    public void setupFirebase() {
         List<String> queue = new ArrayList<String>();
         queue.add("song 1");
         queue.add("song 2");
@@ -83,12 +98,11 @@ public class PartyActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                List<String> queue =(List<String>) dataSnapshot.getValue();
+                List<String> queue = (List<String>) dataSnapshot.getValue();
                 String q = "";
-                for (String s : queue){
-                    q+= s + " # ";
+                for (String s : queue) {
+                    q += s + " # ";
                 }
-//                mTextMessage.setText(q);
             }
 
             @Override
@@ -97,6 +111,34 @@ public class PartyActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void getContentFromApi() {
+        NetworkService.getInstance()
+                .getJSONApi()
+                .getSearchResults("dilbar")
+                .enqueue(new Callback<SearchResponse>() {
+
+                    @Override
+                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
+                        SearchResponse searchResponse = response.body();
+                        Item songItem = null;
+                        for (Item item : searchResponse.getItems()) {
+                            if ("SONG".equals(item.getId())) {
+                                songItem = item;
+                                break;
+                            }
+                        }
+                        songItem.getItems();
+
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<SearchResponse> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
     }
 
 }

@@ -26,6 +26,12 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.MenuItem;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Main_Activity";
     private TextView mTextMessage;
+
 
     private Button.OnClickListener mOnHostClickListener = new View.OnClickListener() {
         @Override
@@ -50,44 +57,15 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        getContentFromApi();
 
         String userId = "krittam_kothari";
 
         View button = findViewById(R.id.host_button);
         button.setOnClickListener(mOnHostClickListener);
 
-
-        mTextMessage = (TextView) findViewById(R.id.message);
     }
 
-    public void getContentFromApi(){
-        NetworkService.getInstance()
-                .getJSONApi()
-                .getSearchResults("dilbar")
-                .enqueue(new Callback<SearchResponse>() {
 
-                    @Override
-                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
-                        SearchResponse searchResponse = response.body();
-                        Item songItem = null;
-                        for (Item item : searchResponse.getItems()){
-                            if ("SONG".equals(item.getId())){
-                                songItem = item;
-                                break;
-                            }
-                        }
-                        songItem.getItems();
-
-                    }
-
-
-                    @Override
-                    public void onFailure(Call<SearchResponse> call, Throwable t) {
-                        Log.d(TAG, t.getLocalizedMessage());
-                    }
-                });
-    }
 
 
 
