@@ -79,6 +79,7 @@ public class PartyActivity extends AppCompatActivity {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 Log.d("tag", "hey");
+                list.clear();
                 list.add("dilar2");
                 list.add("dilbar3");
                 list.add("dilbar3");
