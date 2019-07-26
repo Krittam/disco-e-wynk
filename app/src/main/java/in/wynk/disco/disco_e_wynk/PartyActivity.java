@@ -42,7 +42,6 @@ public class PartyActivity extends AppCompatActivity {
     ArrayAdapter< String > searchAdapter;
     Context context;
 
-
     private RecyclerView recyclerView;
     private EditText copyLinkTextView;
     private List<ModelClass> modelClassList;
@@ -56,8 +55,7 @@ public class PartyActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_party);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+
         isHost = getIntent().getExtras().getBoolean("isHost", false);
         MainActivity.setUid(this);
         userId = MainActivity.getUid(this);
@@ -65,9 +63,14 @@ public class PartyActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
 
-        recyclerView = findViewById(R.id.recycler_view);
-        copyLinkTextView = findViewById(R.id.copyLinkText);
+        handleSearch();
 
+        setDeepLinkState();
+
+        handleQueue();
+    }
+
+    public void handleSearch(){
         context=this;
         searchView = (SearchView) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.lv1);
@@ -95,21 +98,25 @@ public class PartyActivity extends AppCompatActivity {
             }
         });
 
-        copyButton = findViewById(R.id.copyButton);
-        copyButton.setOnClickListener(new View.OnClickListener() {
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onClick(View view) {
-                copyToClipboard(copyLinkTextView.getText().toString());
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                //TODO implement song enque
+                Log.d("tag", Integer.toString(position));
+
+                list.clear();
+                searchView.setQuery("", false);
+                searchView.clearFocus();
+                searchAdapter.notifyDataSetInvalidated();
             }
         });
+    }
 
-        if (isHost) {
-            copyLinkTextView.setText(getDeeplLink(userId));
-        } else {
-            copyLinkTextView.setVisibility(View.GONE);
-            copyButton.setVisibility(View.GONE);
-        }
+    public void handleQueue(){
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(RecyclerView.VERTICAL);
 
+        recyclerView = findViewById(R.id.recycler_view);
 
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(layoutManager);
@@ -124,21 +131,6 @@ public class PartyActivity extends AppCompatActivity {
         Adapter queueAdapter = new Adapter(modelClassList);
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.notifyDataSetChanged();
-
-
-
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-                //TODO implement song enque
-                Log.d("tag", Integer.toString(position));
-
-                list.clear();
-                searchView.setQuery("", false);
-                searchView.clearFocus();
-                searchAdapter.notifyDataSetInvalidated();
-            }
-        });
     }
 
     @Override
@@ -222,5 +214,23 @@ public class PartyActivity extends AppCompatActivity {
     public void copyToClipboard(String text) {
         ClipData clipData = ClipData.newPlainText("Source Text", text);
         clipboardManager.setPrimaryClip(clipData);
+    }
+
+    public void setDeepLinkState(){
+        copyButton = findViewById(R.id.copyButton);
+        copyLinkTextView = findViewById(R.id.copyLinkText);
+        copyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                copyToClipboard(copyLinkTextView.getText().toString());
+            }
+        });
+
+        if (isHost) {
+            copyLinkTextView.setText(getDeeplLink(userId));
+        } else {
+            copyLinkTextView.setVisibility(View.GONE);
+            copyButton.setVisibility(View.GONE);
+        }
     }
 }
