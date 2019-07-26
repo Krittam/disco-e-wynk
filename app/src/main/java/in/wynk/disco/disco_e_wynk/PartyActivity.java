@@ -64,7 +64,7 @@ public class PartyActivity extends AppCompatActivity {
         hostId = userId;
         database = FirebaseDatabase.getInstance();
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        ;
+
         recyclerView = findViewById(R.id.recycler_view);
         copyLinkTextView = findViewById(R.id.copyLinkText);
 
@@ -95,12 +95,6 @@ public class PartyActivity extends AppCompatActivity {
             }
         });
 
-        if (isHost) {
-            copyLinkTextView.setText(getDeeplLink(userId));
-        } else {
-            copyLinkTextView.setVisibility(View.GONE);
-        }
-
         copyButton = findViewById(R.id.copyButton);
         copyButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -108,6 +102,13 @@ public class PartyActivity extends AppCompatActivity {
                 copyToClipboard(copyLinkTextView.getText().toString());
             }
         });
+
+        if (isHost) {
+            copyLinkTextView.setText(getDeeplLink(userId));
+        } else {
+            copyLinkTextView.setVisibility(View.GONE);
+            copyButton.setVisibility(View.GONE);
+        }
 
 
         recyclerView = findViewById(R.id.recycler_view);
@@ -154,7 +155,6 @@ public class PartyActivity extends AppCompatActivity {
         }
     }
 
-
     public void enQueue(String contentId) {
         database.getReference().child("users").child(hostId).child("queue").push().setValue(contentId);
     }
@@ -170,7 +170,6 @@ public class PartyActivity extends AppCompatActivity {
         queue.add("song 3");
         queue.add("song 4");
         queue.add("song 5");
-
 
         database.getReference().child("users").child(userId).child("queue").addValueEventListener(new ValueEventListener() {
             @Override
@@ -224,6 +223,4 @@ public class PartyActivity extends AppCompatActivity {
         ClipData clipData = ClipData.newPlainText("Source Text", text);
         clipboardManager.setPrimaryClip(clipData);
     }
-
-
 }
