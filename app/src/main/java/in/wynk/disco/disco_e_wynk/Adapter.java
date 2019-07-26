@@ -32,8 +32,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         //fetch data
         ModelClass modelClass = modelClassList.get(position);
-        int songId = modelClass.getSongId();
-        int resource = modelClass.getImageResource();
+        String songId = modelClass.getSongId();
+        String resource = modelClass.getImageResource();
         String title = modelClass.getTitle();
         String body = modelClass.getBody();
 
@@ -83,9 +83,9 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             deleteButton = itemView.findViewById(R.id.deleteButton);
         }
 
-        private void setData(int songId, int resource, String titleText, String bodyText){
+        private void setData(String songId, String resource, String titleText, String bodyText){
 
-            imageView.setImageResource((resource));
+            imageView.setImageResource( R.drawable.ic_launcher_background);
             title.setText(titleText);
             body.setText(bodyText);
 
