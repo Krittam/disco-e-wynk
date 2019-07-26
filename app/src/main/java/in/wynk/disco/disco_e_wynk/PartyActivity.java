@@ -25,6 +25,7 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +69,7 @@ public class PartyActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         context=this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        songIdToMetaMap = new HashMap<String, ModelClass>();
 
         handleSearch();
 
@@ -139,6 +141,8 @@ public class PartyActivity extends AppCompatActivity {
             String[] temp = data.toString().split("=");
             hostId = temp[1];
         }
+
+        setupFirebase();
     }
 
     public void enQueue(String contentId) {
@@ -162,16 +166,15 @@ public class PartyActivity extends AppCompatActivity {
                     ModelClass object;
                     ModelClass songMeta = songIdToMetaMap.get(songId);
                     if(null==songMeta){
-//                        songMeta = getMetaForSong(songId);
                         object = new ModelClass(songId, "", songId, "");
 //                        getContentPl;
                     }
                     else{
                         object = songIdToMetaMap.get(songId);
-                        modelClassList.add(object);
-                        queueAdapter.notifyDataSetChanged();
 //                        queueAdapter.notifyItemRangeChanged();
                     }
+                    modelClassList.add(object);
+                    queueAdapter.notifyDataSetChanged();
 
                 }
             }
@@ -182,10 +185,6 @@ public class PartyActivity extends AppCompatActivity {
             }
         });
 
-    }
-
-    public ModelClass getMetaForSong(String songId){
-        return null;
     }
 
 
