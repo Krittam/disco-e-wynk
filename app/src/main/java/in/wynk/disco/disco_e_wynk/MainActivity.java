@@ -11,7 +11,12 @@ import android.widget.Button;
 import android.widget.TextView;
 
 
+import java.util.List;
 import java.util.UUID;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -42,6 +47,31 @@ public class MainActivity extends AppCompatActivity {
 
         setSharedPreferences("uid");
 
+//        getContentFromApi();
+//        getContentPlaybackApi();
+        SearchApi("dilbar");
+
+
+    }
+
+    void searchApiHandler(List<Song> searchResult){
+
+        for(Song song : searchResult){
+            Log.e(TAG, song.getId());
+        }
+
+//        Log.e(TAG, searchResult.get(0).getId());
+
+        getContentPlaybackApi(searchResult.get(1).getId());
+    }
+
+//    void contentHandler(String oStreamingUrl){
+//        Log.e(TAG, oStreamingUrl);
+//        getContentPlaybackApi(oStreamingUrl);
+//    }
+
+    void contentPlaybackHandler(String contentPlaybackUrl) {
+        Log.e(TAG, contentPlaybackUrl);
     }
 
     public void setSharedPreferences(String uidKey) {
@@ -59,4 +89,78 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void SearchApi(String query) {
+        NetworkService.getInstance()
+                .getSearchApi()
+                .getSearchResults(query)
+                .enqueue(new Callback<SearchResponse>() {
+
+                    @Override
+                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
+                        SearchResponse searchResponse = response.body();
+                        Item songItem = null;
+                        for (Item item : searchResponse.getItems()) {
+                            if ("SONG".equals(item.getId())) {
+                                songItem = item;
+                                break;
+                            }
+                        }
+                        songItem.getItems();
+
+//                        Log.e(TAG, songItem.getItems().toString());
+                        searchApiHandler(songItem.getItems());
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<SearchResponse> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
+
+
+//    public void getContentFromApi(final String songId) {
+//        NetworkService.getInstance()
+//                .getContentApi()
+//                .getContentResult(songId, "song", "en")
+//                .enqueue(new Callback<ContentPojo>() {
+//
+//                    @Override
+//                    public void onResponse(Call<ContentPojo> call, Response<ContentPojo> response) {
+//                        ContentPojo contentResponse = response.body();
+//
+//
+////                        Log.e(TAG, contentResponse.getOstreamingUrl().toString());
+//                        contentHandler(songId, contentResponse.getOstreamingUrl());
+//                    }
+//
+//
+//                    @Override
+//                    public void onFailure(Call<ContentPojo> call, Throwable t) {
+//                        Log.d(TAG, t.getLocalizedMessage());
+//                    }
+//                });
+//    }
+
+
+    public void getContentPlaybackApi(String songId) {
+        NetworkService.getInstance()
+                .getContentApi()
+                .getPlaybackResult(songId, "daTr6PpO1NmAesWNG67VK8rE95s2:f9eETGydcRMJ998KWd0ErjnTdIw=", "0203ac820c37ce23/Android/28/188/2.0.7.1")
+                .enqueue(new Callback<ContentPlaybackPojo>() {
+
+                    @Override
+                    public void onResponse(Call<ContentPlaybackPojo> call, Response<ContentPlaybackPojo> response) {
+                        ContentPlaybackPojo contentPlaybackResponse = response.body();
+                        contentPlaybackHandler(contentPlaybackResponse.getUrl());
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<ContentPlaybackPojo> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
 }

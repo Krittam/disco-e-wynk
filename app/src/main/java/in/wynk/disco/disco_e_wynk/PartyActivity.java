@@ -113,9 +113,9 @@ public class PartyActivity extends AppCompatActivity {
 
     }
 
-    public void getContentFromApi() {
+    public void SearchApi() {
         NetworkService.getInstance()
-                .getJSONApi()
+                .getSearchApi()
                 .getSearchResults("dilbar")
                 .enqueue(new Callback<SearchResponse>() {
 
