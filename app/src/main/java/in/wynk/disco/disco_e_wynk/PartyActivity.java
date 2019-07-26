@@ -106,7 +106,6 @@ public class PartyActivity extends AppCompatActivity {
         }
     }
 
-
     public void enQueue(String contentId) {
         database.getReference().child("users").child(hostId).child("queue").push().setValue(contentId);
     }
@@ -122,7 +121,6 @@ public class PartyActivity extends AppCompatActivity {
         queue.add("song 3");
         queue.add("song 4");
         queue.add("song 5");
-
 
         database.getReference().child("users").child(userId).child("queue").addValueEventListener(new ValueEventListener() {
             @Override
@@ -179,6 +177,4 @@ public class PartyActivity extends AppCompatActivity {
         ClipData clipData = ClipData.newPlainText("Source Text", text);
         clipboardManager.setPrimaryClip(clipData);
     }
-
-
 }
