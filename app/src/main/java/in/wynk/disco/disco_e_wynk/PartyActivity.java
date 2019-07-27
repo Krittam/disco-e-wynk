@@ -51,49 +51,48 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayClickedListener{
-        private static final String TAG = "Party_Activity";
-        FirebaseDatabase database;
-        SearchView searchView;
-        ListView listView;
-        Context context;
-        PlayerView exoPlayerView;
-        SimpleExoPlayer exoPlayer;
-        //String url = "https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3";
-       // String url2 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-        String url="";
-        private Boolean isHost;
-        private String userId;
-        private List<String> queue;
-        private String hostId;
-        ArrayList<Song> list;
-        ArrayAdapter< Song > searchAdapter;
+public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayClickedListener {
+    private static final String TAG = "Party_Activity";
+    FirebaseDatabase database;
+    SearchView searchView;
+    ListView listView;
+    Context context;
+    PlayerView exoPlayerView;
+    SimpleExoPlayer exoPlayer;
+    //String url = "https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3";
+    // String url2 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+    String url = "";
+    private Boolean isHost;
+    private String userId;
+    private List<String> queue;
+    private String hostId;
+    ArrayList<Song> list;
+    ArrayAdapter<Song> searchAdapter;
 
-        private RecyclerView recyclerView;
-        private EditText copyLinkTextView;
-        private List<ModelClass> modelClassList;
-        private Button copyButton;
-        private ClipboardManager clipboardManager;
-        private List<String> queueSongIds = new ArrayList<String>();
+    private RecyclerView recyclerView;
+    private EditText copyLinkTextView;
+    private List<ModelClass> modelClassList;
+    private Button copyButton;
+    private ClipboardManager clipboardManager;
+    private List<String> queueSongIds = new ArrayList<String>();
 
-        private Map<String, ModelClass> songIdToMetaMap;
-        Adapter queueAdapter;
+    private Map<String, ModelClass> songIdToMetaMap;
+    Adapter queueAdapter;
 
-        @Override
-        protected void onCreate(Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_party);
-            userId = MainActivity.getUid(this);
-            Uri data = getIntent().getData();
-            if (data != null) {
-                isHost = false;
-                String[] temp = data.toString().split("=");
-                hostId = temp[1];
-            }
-            else{
-                isHost = getIntent().getExtras().getBoolean("isHost", true);
-                hostId = userId;
-            }
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_party);
+        userId = MainActivity.getUid(this);
+        Uri data = getIntent().getData();
+        if (data != null) {
+            isHost = false;
+            String[] temp = data.toString().split("=");
+            hostId = temp[1];
+        } else {
+            isHost = getIntent().getExtras().getBoolean("isHost", true);
+            hostId = userId;
+        }
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(RecyclerView.VERTICAL);
 
@@ -101,7 +100,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
 
 
         database = FirebaseDatabase.getInstance();
-        context=this;
+        context = this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
         songIdToMetaMap = new HashMap<String, ModelClass>();
 
@@ -116,7 +115,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
     }
 
 
-    public void exoPlayerfunc(){
+    public void exoPlayerfunc() {
         exoPlayerView = findViewById(R.id.exo_player_view);
         try {
             BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
@@ -130,12 +129,14 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             MediaSource Fsource = new ExtractorMediaSource(uri1, dataSourceFactory, extractorsFactory, null, null);
 
             exoPlayerView.setPlayer(exoPlayer);
-            exoPlayer.prepare(Fsource);
-
-            if(url==""){
-                exoPlayer.setPlayWhenReady(false);
+            if (isHost) {
+                exoPlayer.prepare(Fsource);
             }
-            else{
+
+
+            if (url == "") {
+                exoPlayer.setPlayWhenReady(false);
+            } else {
                 exoPlayer.setPlayWhenReady(true);
             }
 
@@ -144,17 +145,17 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             exoPlayerView.setUseController(true);
 
 
-
         } catch (Exception e) {
             Log.e("Exoplayer error:", e.toString());
         }
 
     }
-    public void handleSearch(){
+
+    public void handleSearch() {
         searchView = (SearchView) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.lv1);
         list = new ArrayList<>();
-        searchAdapter = new ArrayAdapter<Song>(context, android.R.layout.simple_list_item_1,list);
+        searchAdapter = new ArrayAdapter<Song>(context, android.R.layout.simple_list_item_1, list);
         listView.setAdapter(searchAdapter);
 
         searchView.setVisibility(View.VISIBLE);
@@ -192,7 +193,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
 
     }
 
-    public void handleQueue(){
+    public void handleQueue() {
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(RecyclerView.VERTICAL);
 
@@ -233,10 +234,10 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             public void onDataChange(DataSnapshot dataSnapshot) {
                 modelClassList.clear();
                 Map<String, String> snapshotMap = (Map<String, String>) dataSnapshot.getValue();
-                if (snapshotMap!=null){
-                    List<String> queueSongObjects =  new ArrayList<>(snapshotMap.keySet());
+                if (snapshotMap != null) {
+                    List<String> queueSongObjects = new ArrayList<>(snapshotMap.keySet());
                     Collections.sort(queueSongObjects);
-                    for (String songIdKey : queueSongObjects){
+                    for (String songIdKey : queueSongObjects) {
                         String songId = snapshotMap.get(songIdKey);
                         modelClassList.add(new ModelClass(songId, "", songId, ""));
                         getContentFromApi(songId);
@@ -265,7 +266,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         clipboardManager.setPrimaryClip(clipData);
     }
 
-    public void setDeepLinkState(){
+    public void setDeepLinkState() {
         copyButton = findViewById(R.id.copyButton);
         copyLinkTextView = findViewById(R.id.copyLinkText);
         copyButton.setOnClickListener(new View.OnClickListener() {
@@ -357,11 +358,11 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
 
     void playSong(String contentPlaybackUrl) {
         Log.e(TAG, contentPlaybackUrl);
-        url=contentPlaybackUrl;
+        url = contentPlaybackUrl;
         if (exoPlayer != null) {
-          // playbackPosition = exoPlayer.getCurrentPosition();
-          //  currentWindow = exoPlayer.getCurrentWindowIndex();
-          // playWhenReady = exoPlayer.getPlayWhenReady();
+            // playbackPosition = exoPlayer.getCurrentPosition();
+            //  currentWindow = exoPlayer.getCurrentWindowIndex();
+            // playWhenReady = exoPlayer.getPlayWhenReady();
             exoPlayer.release();
             exoPlayer = null;
 

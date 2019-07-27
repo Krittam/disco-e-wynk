@@ -69,12 +69,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
 
         viewHolder.playButton.setTag(R.id.exo_prev, songId);
         viewHolder.playButton.setOnClickListener(this);
-        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                remove(position);
-            }
-        });
+//        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                remove(position);
+//            }
+//        });
     }
 
     @Override
@@ -82,11 +82,11 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements
         return modelClassList.size();
     }
 
-    public void remove(int position){
-        modelClassList.remove(position);
-        notifyItemRemoved(position);
-        notifyItemRangeChanged(position, modelClassList.size());
-    }
+//    public void remove(int position){
+//        modelClassList.remove(position);
+//        notifyItemRemoved(position);
+//        notifyItemRangeChanged(position, modelClassList.size());
+//    }
 
     class ViewHolder extends RecyclerView.ViewHolder{
 
