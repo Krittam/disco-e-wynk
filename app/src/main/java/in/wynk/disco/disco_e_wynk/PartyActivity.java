@@ -160,23 +160,23 @@ public class PartyActivity extends AppCompatActivity {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 modelClassList.clear();
                 Map<Integer, String> snapshotMap = (Map<Integer, String>) dataSnapshot.getValue();
-                Collection<String> queueSongObjects =  snapshotMap.values();
-                for (String songId : queueSongObjects){
-//                    String songId = ((List<String>) songObject.values()).get(0);
-                    ModelClass object;
-                    ModelClass songMeta = songIdToMetaMap.get(songId);
-                    if(null==songMeta){
-                        object = new ModelClass(songId, "", songId, "");
-//                        getContentPl;
-                    }
-                    else{
-                        object = songIdToMetaMap.get(songId);
-//                        queueAdapter.notifyItemRangeChanged();
-                    }
-                    modelClassList.add(object);
-                    queueAdapter.notifyDataSetChanged();
+                if (snapshotMap!=null){
+                    Collection<String> queueSongObjects =  snapshotMap.values();
+                    for (String songId : queueSongObjects){
+                        ModelClass object;
+                        ModelClass songMeta = songIdToMetaMap.get(songId);
+                        if(null==songMeta){
+                            object = new ModelClass(songId, "", songId, "");
+                        }
+                        else{
+                            object = songIdToMetaMap.get(songId);
+                        }
+                        modelClassList.add(object);
+                        queueAdapter.notifyDataSetChanged();
 
+                    }
                 }
+
             }
 
             @Override
