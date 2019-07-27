@@ -82,10 +82,18 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_party);
 
-
+            Uri data = getIntent().getData();
+            if (data != null) {
+                isHost = false;
+                String[] temp = data.toString().split("=");
+                hostId = temp[1];
+            }
+            else{
+                isHost = getIntent().getExtras().getBoolean("isHost", true);
+            }
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(RecyclerView.VERTICAL);
-        isHost = getIntent().getExtras().getBoolean("isHost", false);
+
         MainActivity.setUid(this);
         userId = MainActivity.getUid(this);
         hostId = userId;
@@ -93,6 +101,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         context=this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
         songIdToMetaMap = new HashMap<String, ModelClass>();
+
 
         handleSearch();
 
@@ -108,21 +117,14 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         exoPlayerView = findViewById(R.id.exo_player_view);
         try {
             BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-            // final ExtractorsFactory extractorsFactory=new DefaultExtractorsFactory();
             TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(bandwidthMeter));
-            // TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
             exoPlayer = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
 
             Uri uri1 = Uri.parse(url);
-            // Uri uri2 = Uri.parse(url2);
             DefaultHttpDataSourceFactory dataSourceFactory = new DefaultHttpDataSourceFactory("exoplayer");
             ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
 
             MediaSource Fsource = new ExtractorMediaSource(uri1, dataSourceFactory, extractorsFactory, null, null);
-            // MediaSource Ssource = new ExtractorMediaSource(uri2, dataSourceFactory, extractorsFactory, null, null);
-            //ConcatenatingMediaSource concatenatedSource =
-            //   new ConcatenatingMediaSource(Fsource, Ssource);
-            // exoPlayer= ExoPlayerFactory.newSimpleInstance(this,new DefaultTrackSelector(trackSelectionFactory));
 
             exoPlayerView.setPlayer(exoPlayer);
             exoPlayer.prepare(Fsource);
@@ -207,28 +209,12 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         queueAdapter = new Adapter(modelClassList);
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.notifyDataSetChanged();
+        queueAdapter.setOnPlayClickedListener(this);
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        MainActivity.setUid(this);
-        Intent in = getIntent();
-        Uri data = in.getData();
-        System.out.println("deeplinkingcallback   :- " + data);
-        if (data != null) {
-            isHost = false;
-            String[] temp = data.toString().split("=");
-            hostId = temp[1];
-        }
-
-        setupFirebase();
-        this.queueAdapter.setOnPlayClickedListener(this);
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
+    protected void onStop() {
+        super.onStop();
         this.queueAdapter.setOnPlayClickedListener(null);
     }
 
@@ -297,8 +283,8 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         if (isHost) {
             copyLinkTextView.setText(getDeeplLink(userId));
         } else {
-            copyLinkTextView.setVisibility(View.GONE);
-            copyButton.setVisibility(View.GONE);
+            copyButton.setVisibility(View.INVISIBLE);
+            copyLinkTextView.setVisibility(View.INVISIBLE);
         }
     }
 
