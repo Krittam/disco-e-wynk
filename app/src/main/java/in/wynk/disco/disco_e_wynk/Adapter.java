@@ -25,14 +25,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
+public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> implements View.OnClickListener {
     private List<ModelClass> modelClassList;
     public Map<String, ContentPojo> contentData;
+    private OnPlayClickedListener onPlayClickedListener;
 //    private static final String DELETE_TAG = "Song deleted";
 
     public Adapter(List<ModelClass> modelClassList) {
+
         contentData = new HashMap<String, ContentPojo>();
         this.modelClassList = modelClassList;
+    }
+
+    public OnPlayClickedListener getOnPlayClickedListener() {
+        return onPlayClickedListener;
+    }
+
+    public void setOnPlayClickedListener(OnPlayClickedListener onPlayClickedListener) {
+        this.onPlayClickedListener = onPlayClickedListener;
     }
 
     @NonNull
@@ -45,6 +55,10 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
         ModelClass modelClass = modelClassList.get(position);
+        final String songId = modelClass.getSongId();
+//        String resource = modelClass.getImageResource();
+//        String title = modelClass.getTitle();
+//        String body = modelClass.getBody();
 
         if (contentData.containsKey(modelClass.getSongId())) {
             ContentPojo contentPojo = contentData.get(modelClass.getSongId());
@@ -52,19 +66,15 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         } else {
             viewHolder.setData(modelClass.getSongId(),"", modelClass.getSongId(), "");
         }
-        viewHolder.playButton.setOnClickListener(new View.OnClickListener() {
+
+        viewHolder.playButton.setTag(R.id.exo_prev, songId);
+        viewHolder.playButton.setOnClickListener(this);
+        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //play this song
+                remove(position);
             }
         });
-
-//        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                remove(position);
-//            }
-//        });
     }
 
     @Override
@@ -107,4 +117,16 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
     }
 
+    @Override
+    public void onClick(View view) {
+        String songId = (String) view.getTag(R.id.exo_prev);
+        if (onPlayClickedListener != null) {
+            onPlayClickedListener.onPlayClicked(songId);
+        }
+    }
+
+
+    interface OnPlayClickedListener {
+        void onPlayClicked(String songId);
+    }
 }

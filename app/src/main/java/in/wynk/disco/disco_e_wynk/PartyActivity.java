@@ -49,39 +49,62 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class PartyActivity extends AppCompatActivity {
-    private static final String TAG = "Party_Activity";
-    FirebaseDatabase database;
-    SearchView searchView;
-    ListView listView;
-    Context context;
-    PlayerView exoPlayerView;
-    SimpleExoPlayer exoPlayer;
-    String url = "https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3";
-    String url2 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
-    private Boolean isHost;
-    private String userId;
-    private List<String> queue;
-    private String hostId;
-    ArrayList<Song> list;
-    ArrayAdapter< Song > searchAdapter;
+public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayClickedListener{
+        private static final String TAG = "Party_Activity";
+        FirebaseDatabase database;
+        SearchView searchView;
+        ListView listView;
+        Context context;
+        PlayerView exoPlayerView;
+        SimpleExoPlayer exoPlayer;
+        //String url = "https://file-examples.com/wp-content/uploads/2017/11/file_example_MP3_700KB.mp3";
+       // String url2 = "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3";
+        String url="";
+        private Boolean isHost;
+        private String userId;
+        private List<String> queue;
+        private String hostId;
+        ArrayList<Song> list;
+        ArrayAdapter< Song > searchAdapter;
 
-    private RecyclerView recyclerView;
-    private EditText copyLinkTextView;
-    private List<ModelClass> modelClassList;
-    private Button copyButton;
-    private ClipboardManager clipboardManager;
-    private List<String> queueSongIds = new ArrayList<String>();
+        private RecyclerView recyclerView;
+        private EditText copyLinkTextView;
+        private List<ModelClass> modelClassList;
+        private Button copyButton;
+        private ClipboardManager clipboardManager;
+        private List<String> queueSongIds = new ArrayList<String>();
 
-//    private Map<String, ModelClass> songIdToMetaMap;
-    Adapter queueAdapter;
+        private Map<String, ModelClass> songIdToMetaMap;
+        Adapter queueAdapter;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_party);
+        @Override
+        protected void onCreate(Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_party);
 
 
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(RecyclerView.VERTICAL);
+        isHost = getIntent().getExtras().getBoolean("isHost", false);
+        MainActivity.setUid(this);
+        userId = MainActivity.getUid(this);
+        hostId = userId;
+        database = FirebaseDatabase.getInstance();
+        context=this;
+        clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        songIdToMetaMap = new HashMap<String, ModelClass>();
+
+        handleSearch();
+
+        setDeepLinkState();
+
+        handleQueue();
+        setupFirebase();
+        exoPlayerfunc();
+    }
+
+
+    public void exoPlayerfunc(){
         exoPlayerView = findViewById(R.id.exo_player_view);
         try {
             BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
@@ -100,11 +123,18 @@ public class PartyActivity extends AppCompatActivity {
             //ConcatenatingMediaSource concatenatedSource =
             //   new ConcatenatingMediaSource(Fsource, Ssource);
             // exoPlayer= ExoPlayerFactory.newSimpleInstance(this,new DefaultTrackSelector(trackSelectionFactory));
+
             exoPlayerView.setPlayer(exoPlayer);
             exoPlayer.prepare(Fsource);
             //exoPlayer.prepare(Ssource);
             //exoPlayer.prepare(concatenatedSource);
-            exoPlayer.setPlayWhenReady(false);
+            if(url==""){
+                exoPlayer.setPlayWhenReady(false);
+            }
+            else{
+                exoPlayer.setPlayWhenReady(true);
+            }
+
             exoPlayerView.setControllerHideOnTouch(false);
             exoPlayerView.setControllerShowTimeoutMs(0);
             //exoPlayerView.setUseController(true);
@@ -124,25 +154,7 @@ public class PartyActivity extends AppCompatActivity {
             Log.e("Exoplayer error:", e.toString());
         }
 
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(RecyclerView.VERTICAL);
-        isHost = getIntent().getExtras().getBoolean("isHost", false);
-        MainActivity.setUid(this);
-        userId = MainActivity.getUid(this);
-        hostId = userId;
-        database = FirebaseDatabase.getInstance();
-        context=this;
-        clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-
-        handleSearch();
-
-        setDeepLinkState();
-
-        handleQueue();
-        setupFirebase();
     }
-
     public void handleSearch(){
         searchView = (SearchView) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.lv1);
@@ -192,7 +204,7 @@ public class PartyActivity extends AppCompatActivity {
 
 
         modelClassList = new ArrayList<>();
-        queueAdapter = new Adapter(modelClassList );
+        queueAdapter = new Adapter(modelClassList);
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.notifyDataSetChanged();
     }
@@ -211,6 +223,18 @@ public class PartyActivity extends AppCompatActivity {
         }
 
         setupFirebase();
+        this.queueAdapter.setOnPlayClickedListener(this);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        this.queueAdapter.setOnPlayClickedListener(null);
+    }
+
+    @Override
+    public void onPlayClicked(String songId) {
+        getContentPlaybackApi(songId);
     }
 
     public void enQueue(String contentId) {
@@ -250,33 +274,6 @@ public class PartyActivity extends AppCompatActivity {
 
     }
 
-
-    public void SearchApi() {
-        NetworkService.getInstance()
-                .getSearchApi()
-                .getSearchResults("dilbar")
-                .enqueue(new Callback<SearchResponse>() {
-
-                    @Override
-                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
-                        SearchResponse searchResponse = response.body();
-                        Item songItem = null;
-                        for (Item item : searchResponse.getItems()) {
-                            if ("SONG".equals(item.getId())) {
-                                songItem = item;
-                                break;
-                            }
-                        }
-
-                        list.addAll(songItem.getItems());
-                    }
-
-                    @Override
-                    public void onFailure(Call<SearchResponse> call, Throwable t) {
-                        Log.d(TAG, t.getLocalizedMessage());
-                    }
-                });
-    }
 
     public String getDeeplLink(String uid) {
         return String.format("http://discoewynk.com/uid=%s", uid);
@@ -324,9 +321,6 @@ public class PartyActivity extends AppCompatActivity {
                         }
                         list.addAll(songItem.getItems());
                         searchAdapter.notifyDataSetChanged();
-
-//                        Log.e(TAG, songItem.getItems().toString());
-                        searchApiHandler(songItem.getItems());
                     }
 
 
@@ -358,10 +352,6 @@ public class PartyActivity extends AppCompatActivity {
                 });
     }
 
-    void searchApiHandler(List<Song> searchResult){
-
-//        getContentPlaybackApi(searchResult.get(1).getId());
-    }
 
     public void getContentPlaybackApi(String songId) {
         NetworkService.getInstance()
@@ -383,7 +373,11 @@ public class PartyActivity extends AppCompatActivity {
                 });
     }
 
+
     void playSong(String contentPlaybackUrl) {
         Log.e(TAG, contentPlaybackUrl);
+        url=contentPlaybackUrl;
+        exoPlayerfunc();
+
     }
 }
