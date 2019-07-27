@@ -11,12 +11,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.List;
+import java.util.Map;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     private List<ModelClass> modelClassList;
+    private Map<String, ContentPojo> contentData;
 //    private static final String DELETE_TAG = "Song deleted";
 
-    public Adapter(List<ModelClass> modelClassList) {
+    public Adapter(List<ModelClass> modelClassList, Map<String, ContentPojo> contentData) {
 
         this.modelClassList = modelClassList;
     }
@@ -36,6 +38,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         String resource = modelClass.getImageResource();
         String title = modelClass.getTitle();
         String body = modelClass.getBody();
+
+        if (contentData.containsKey(modelClass.getSongId())) {
+
+        } else {
+
+        }
 
         viewHolder.setData(songId, resource, title, body);
 

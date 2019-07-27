@@ -14,8 +14,8 @@ public interface RestApi {
     Call <SearchResponse> getSearchResults(@Query("q") String query);
 
 
-//    @GET("music/v4/content/") //?id=srch_unisysinfo_M09050867&=song&=en
-//    Call <ContentPojo> getContentResult(@Query("id") String id, @Query("type") String type, @Query("lang") String lang);
+    @GET("music/v4/content/") //?id=srch_unisysinfo_M09050867&=song&=en
+    Call <ContentPojo> getContentResult(@Query("id") String id, @Query("type") String type, @Query("lang") String lang);
 
 
     @GET("streaming/v4/cscgw/{id}.html")

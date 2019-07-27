@@ -189,8 +189,9 @@ public class PartyActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recycler_view);
         recyclerView.setLayoutManager(layoutManager);
 
+
         modelClassList = new ArrayList<>();
-        queueAdapter = new Adapter(modelClassList);
+        queueAdapter = new Adapter(modelClassList, );
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.notifyDataSetChanged();
     }
@@ -237,6 +238,7 @@ public class PartyActivity extends AppCompatActivity {
                         else{
                             object = songIdToMetaMap.get(songId);
                         }
+
                         modelClassList.add(object);
                         queueAdapter.notifyDataSetChanged();
 
