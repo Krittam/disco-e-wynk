@@ -2,6 +2,11 @@ package in.wynk.disco.disco_e_wynk;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +15,12 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -48,12 +59,12 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             }
         });
 
-        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                remove(position);
-            }
-        });
+//        viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                remove(position);
+//            }
+//        });
     }
 
     @Override
@@ -85,13 +96,14 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             deleteButton = itemView.findViewById(R.id.deleteButton);
         }
 
-        private void setData(String songId, String resource, String titleText, String bodyText){
-
-            imageView.setImageResource( R.drawable.ic_launcher_background);
+        private void setData(String songId, String imageUrl, String titleText, String bodyText){
+            Glide.with(imageView)
+                    .load(imageUrl)
+                    .into(imageView);
             title.setText(titleText);
             body.setText(bodyText);
-
         }
+
 
     }
 
