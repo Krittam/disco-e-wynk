@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "432319368415",
+    "firebase_url": "https://discoewynk.firebaseio.com",
+    "project_id": "discoewynk",
+    "storage_bucket": "discoewynk.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:432319368415:android:7b7340c938aead52",
+        "android_client_info": {
+          "package_name": "in.wynk.disco.disco_e_wynk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "432319368415-qtqmkkiubc2voij9e82ebv6srchaghhg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "in.wynk.disco.disco_e_wynk",
+            "certificate_hash": "05e96724eac51a6733476937bedd5f0e03c2f878"
+          }
+        },
+        {
+          "client_id": "432319368415-dabn97g4836l75o0bf2sfl7upsrrd0j6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD4BGhn0hA1P2KGcdcIO75bLoZCPEMns0c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "432319368415-dabn97g4836l75o0bf2sfl7upsrrd0j6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
