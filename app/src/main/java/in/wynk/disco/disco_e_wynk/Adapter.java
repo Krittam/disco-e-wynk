@@ -10,16 +10,17 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     private List<ModelClass> modelClassList;
-    private Map<String, ContentPojo> contentData;
+    public Map<String, ContentPojo> contentData;
 //    private static final String DELETE_TAG = "Song deleted";
 
-    public Adapter(List<ModelClass> modelClassList, Map<String, ContentPojo> contentData) {
-
+    public Adapter(List<ModelClass> modelClassList) {
+        contentData = new HashMap<String, ContentPojo>();
         this.modelClassList = modelClassList;
     }
 
@@ -32,21 +33,14 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int position) {
-        //fetch data
         ModelClass modelClass = modelClassList.get(position);
-        String songId = modelClass.getSongId();
-        String resource = modelClass.getImageResource();
-        String title = modelClass.getTitle();
-        String body = modelClass.getBody();
 
         if (contentData.containsKey(modelClass.getSongId())) {
-
+            ContentPojo contentPojo = contentData.get(modelClass.getSongId());
+            viewHolder.setData(modelClass.getSongId(), contentPojo.getSmallImage(), contentPojo.getTitle(), contentPojo.getAlbum());
         } else {
-
+            viewHolder.setData(modelClass.getSongId(),"", modelClass.getSongId(), "");
         }
-
-        viewHolder.setData(songId, resource, title, body);
-
         viewHolder.playButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

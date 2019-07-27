@@ -39,9 +39,11 @@ import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -71,7 +73,7 @@ public class PartyActivity extends AppCompatActivity {
     private ClipboardManager clipboardManager;
     private List<String> queueSongIds = new ArrayList<String>();
 
-    private Map<String, ModelClass> songIdToMetaMap;
+//    private Map<String, ModelClass> songIdToMetaMap;
     Adapter queueAdapter;
 
     @Override
@@ -132,7 +134,6 @@ public class PartyActivity extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         context=this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        songIdToMetaMap = new HashMap<String, ModelClass>();
 
         handleSearch();
 
@@ -191,7 +192,7 @@ public class PartyActivity extends AppCompatActivity {
 
 
         modelClassList = new ArrayList<>();
-        queueAdapter = new Adapter(modelClassList, );
+        queueAdapter = new Adapter(modelClassList );
         recyclerView.setAdapter(queueAdapter);
         queueAdapter.notifyDataSetChanged();
     }
@@ -226,20 +227,14 @@ public class PartyActivity extends AppCompatActivity {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 modelClassList.clear();
-                Map<Integer, String> snapshotMap = (Map<Integer, String>) dataSnapshot.getValue();
+                Map<String, String> snapshotMap = (Map<String, String>) dataSnapshot.getValue();
                 if (snapshotMap!=null){
-                    Collection<String> queueSongObjects =  snapshotMap.values();
-                    for (String songId : queueSongObjects){
-                        ModelClass object;
-                        ModelClass songMeta = songIdToMetaMap.get(songId);
-                        if(null==songMeta){
-                            object = new ModelClass(songId, "", songId, "");
-                        }
-                        else{
-                            object = songIdToMetaMap.get(songId);
-                        }
-
-                        modelClassList.add(object);
+                    List<String> queueSongObjects =  new ArrayList<>(snapshotMap.keySet());
+                    Collections.sort(queueSongObjects);
+                    for (String songIdKey : queueSongObjects){
+                        String songId = snapshotMap.get(songIdKey);
+                        modelClassList.add(new ModelClass(songId, "", songId, ""));
+                        getContentFromApi(songId);
                         queueAdapter.notifyDataSetChanged();
 
                     }
@@ -337,6 +332,27 @@ public class PartyActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<SearchResponse> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
+
+    public void getContentFromApi(final String songId) {
+        NetworkService.getInstance()
+                .getContentApi()
+                .getContentResult(songId, "song", "en")
+                .enqueue(new Callback<ContentPojo>() {
+
+                    @Override
+                    public void onResponse(Call<ContentPojo> call, Response<ContentPojo> response) {
+                        ContentPojo contentResponse = response.body();
+                        queueAdapter.contentData.put(songId, contentResponse);
+                        queueAdapter.notifyDataSetChanged();
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<ContentPojo> call, Throwable t) {
                         Log.d(TAG, t.getLocalizedMessage());
                     }
                 });
