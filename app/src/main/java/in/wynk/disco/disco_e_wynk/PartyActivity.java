@@ -82,54 +82,6 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_party);
 
-//        exoPlayerView = findViewById(R.id.exo_player_view);
-//        try {
-//            BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-//            // final ExtractorsFactory extractorsFactory=new DefaultExtractorsFactory();
-//            TrackSelector trackSelector = new DefaultTrackSelector(new AdaptiveTrackSelection.Factory(bandwidthMeter));
-//            // TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-//            exoPlayer = ExoPlayerFactory.newSimpleInstance(this, trackSelector);
-//
-//            Uri uri1 = Uri.parse(url);
-//            // Uri uri2 = Uri.parse(url2);
-//            DefaultHttpDataSourceFactory dataSourceFactory = new DefaultHttpDataSourceFactory("exoplayer");
-//            ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-//
-//            MediaSource Fsource = new ExtractorMediaSource(uri1, dataSourceFactory, extractorsFactory, null, null);
-//            // MediaSource Ssource = new ExtractorMediaSource(uri2, dataSourceFactory, extractorsFactory, null, null);
-//            //ConcatenatingMediaSource concatenatedSource =
-//            //   new ConcatenatingMediaSource(Fsource, Ssource);
-//            // exoPlayer= ExoPlayerFactory.newSimpleInstance(this,new DefaultTrackSelector(trackSelectionFactory));
-//            exoPlayerView.setPlayer(exoPlayer);
-//            exoPlayer.prepare(Fsource);
-//            //exoPlayer.prepare(Ssource);
-//            //exoPlayer.prepare(concatenatedSource);
-//            if(url==""){
-//                exoPlayer.setPlayWhenReady(false);
-//            }
-//            else{
-//                exoPlayer.setPlayWhenReady(true);
-//            }
-//
-//            exoPlayerView.setControllerHideOnTouch(false);
-//            exoPlayerView.setControllerShowTimeoutMs(0);
-//            //exoPlayerView.setUseController(true);
-//
-//
-//            //    BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-//            //    final ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-//            //    TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-//            //   // DataSource.Factory dateSourceFactory = new DefaultDataSourceFactory();
-//            //    DefaultHttpDataSourceFactory dataSourceFactory=new DefaultHttpDataSourceFactory("exo-player");
-//            //    MediaSource mediaSource = new ExtractorMediaSource(Uri.parse("http://play.wynk.in/srch_unisysinfo/music/128/1528715656/srch_unisysinfo_M09050867.mp3?token=1564146430_f03aa48f3e5a76ef2275d371ab23c2e5"), dataSourceFactory, extractorsFactory,null,null);    // replace Uri with your song url
-//            //    exoPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultTrackSelector(trackSelectionFactory));
-//            //    exoPlayerView.setPlayer(exoPlayer);
-//            //    exoPlayer.prepare(mediaSource);
-//            //    exoPlayer.setPlayWhenReady(false);
-//        } catch (Exception e) {
-//            Log.e("Exoplayer error:", e.toString());
-//        }
-
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(RecyclerView.VERTICAL);
@@ -202,23 +154,6 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             Log.e("Exoplayer error:", e.toString());
         }
 
-
-        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
-        layoutManager.setOrientation(RecyclerView.VERTICAL);
-        isHost = getIntent().getExtras().getBoolean("isHost", false);
-        MainActivity.setUid(this);
-        userId = MainActivity.getUid(this);
-        hostId = userId;
-        database = FirebaseDatabase.getInstance();
-        context=this;
-        clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-
-        handleSearch();
-
-        setDeepLinkState();
-
-        handleQueue();
-        setupFirebase();
     }
     public void handleSearch(){
         searchView = (SearchView) findViewById(R.id.searchView);
@@ -340,33 +275,6 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
     }
 
 
-    public void SearchApi() {
-        NetworkService.getInstance()
-                .getSearchApi()
-                .getSearchResults("dilbar")
-                .enqueue(new Callback<SearchResponse>() {
-
-                    @Override
-                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
-                        SearchResponse searchResponse = response.body();
-                        Item songItem = null;
-                        for (Item item : searchResponse.getItems()) {
-                            if ("SONG".equals(item.getId())) {
-                                songItem = item;
-                                break;
-                            }
-                        }
-
-                        list.addAll(songItem.getItems());
-                    }
-
-                    @Override
-                    public void onFailure(Call<SearchResponse> call, Throwable t) {
-                        Log.d(TAG, t.getLocalizedMessage());
-                    }
-                });
-    }
-
     public String getDeeplLink(String uid) {
         return String.format("http://discoewynk.com/uid=%s", uid);
     }
@@ -413,9 +321,6 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
                         }
                         list.addAll(songItem.getItems());
                         searchAdapter.notifyDataSetChanged();
-
-//                        Log.e(TAG, songItem.getItems().toString());
-                        searchApiHandler(songItem.getItems());
                     }
 
 
@@ -447,10 +352,6 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
                 });
     }
 
-    void searchApiHandler(List<Song> searchResult){
-
-//        getContentPlaybackApi(searchResult.get(1).getId());
-    }
 
     public void getContentPlaybackApi(String songId) {
         NetworkService.getInstance()
