@@ -38,7 +38,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -49,8 +52,6 @@ public class PartyActivity extends AppCompatActivity {
     FirebaseDatabase database;
     SearchView searchView;
     ListView listView;
-    ArrayList<String> list;
-    ArrayAdapter<String> searchAdapter;
     Context context;
     PlayerView exoPlayerView;
     SimpleExoPlayer exoPlayer;
@@ -60,11 +61,18 @@ public class PartyActivity extends AppCompatActivity {
     private String userId;
     private List<String> queue;
     private String hostId;
+    ArrayList<Song> list;
+    ArrayAdapter< Song > searchAdapter;
+
     private RecyclerView recyclerView;
     private EditText copyLinkTextView;
     private List<ModelClass> modelClassList;
     private Button copyButton;
     private ClipboardManager clipboardManager;
+    private List<String> queueSongIds = new ArrayList<String>();
+
+    private Map<String, ModelClass> songIdToMetaMap;
+    Adapter queueAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,27 +130,30 @@ public class PartyActivity extends AppCompatActivity {
         userId = MainActivity.getUid(this);
         hostId = userId;
         database = FirebaseDatabase.getInstance();
+        context=this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-        ;
-        recyclerView = findViewById(R.id.recycler_view);
-        copyLinkTextView = findViewById(R.id.copyLinkText);
+        songIdToMetaMap = new HashMap<String, ModelClass>();
 
-        context = this;
+        handleSearch();
+
+        setDeepLinkState();
+
+        handleQueue();
+        setupFirebase();
+    }
+
+    public void handleSearch(){
         searchView = (SearchView) findViewById(R.id.searchView);
         listView = (ListView) findViewById(R.id.lv1);
         list = new ArrayList<>();
-        searchAdapter = new ArrayAdapter<String>(context, android.R.layout.simple_list_item_1, list);
+        searchAdapter = new ArrayAdapter<Song>(context, android.R.layout.simple_list_item_1,list);
         listView.setAdapter(searchAdapter);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                Log.d("tag", "hey");
-                list.add("dilar2");
-                list.add("dilbar3");
-                list.add("dilbar3");
-                list.add("dilbar3");
-                searchAdapter.notifyDataSetChanged();
+                searchApi(query);
+                list.clear();
                 Log.d("tag", query);
                 return false;
             }
@@ -154,42 +165,13 @@ public class PartyActivity extends AppCompatActivity {
             }
         });
 
-        if (isHost) {
-            copyLinkTextView.setText(getDeeplLink(userId));
-        } else {
-            copyLinkTextView.setVisibility(View.GONE);
-        }
-
-        copyButton = findViewById(R.id.copyButton);
-        copyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                copyToClipboard(copyLinkTextView.getText().toString());
-            }
-        });
-
-
-        recyclerView = findViewById(R.id.recycler_view);
-        recyclerView.setLayoutManager(layoutManager);
-
-        modelClassList = new ArrayList<>();
-        modelClassList.add(new ModelClass(1, R.drawable.ic_launcher_background, "Song 1", "Singer 1"));
-        modelClassList.add(new ModelClass(2, R.drawable.ic_launcher_background, "Song 2", "Singer 2"));
-        modelClassList.add(new ModelClass(3, R.drawable.ic_launcher_background, "Song 3", "Singer 3"));
-        modelClassList.add(new ModelClass(4, R.drawable.ic_launcher_background, "Song 4", "Singer 4"));
-        modelClassList.add(new ModelClass(5, R.drawable.ic_launcher_background, "Song 5", "Singer 5"));
-
-        Adapter queueAdapter = new Adapter(modelClassList);
-        recyclerView.setAdapter(queueAdapter);
-        queueAdapter.notifyDataSetChanged();
-
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 //TODO implement song enque
                 Log.d("tag", Integer.toString(position));
-
+                enQueue(list.get(position).getId());
                 list.clear();
                 searchView.setQuery("", false);
                 searchView.clearFocus();
@@ -198,6 +180,19 @@ public class PartyActivity extends AppCompatActivity {
         });
 
 
+    }
+
+    public void handleQueue(){
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        layoutManager.setOrientation(RecyclerView.VERTICAL);
+
+        recyclerView = findViewById(R.id.recycler_view);
+        recyclerView.setLayoutManager(layoutManager);
+
+        modelClassList = new ArrayList<>();
+        queueAdapter = new Adapter(modelClassList);
+        recyclerView.setAdapter(queueAdapter);
+        queueAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -212,8 +207,9 @@ public class PartyActivity extends AppCompatActivity {
             String[] temp = data.toString().split("=");
             hostId = temp[1];
         }
-    }
 
+        setupFirebase();
+    }
 
     public void enQueue(String contentId) {
         database.getReference().child("users").child(hostId).child("queue").push().setValue(contentId);
@@ -224,23 +220,29 @@ public class PartyActivity extends AppCompatActivity {
     }
 
     public void setupFirebase() {
-        List<String> queue = new ArrayList<String>();
-        queue.add("song 1");
-        queue.add("song 2");
-        queue.add("song 3");
-        queue.add("song 4");
-        queue.add("song 5");
 
-
-        database.getReference().child("users").child(userId).child("queue").addValueEventListener(new ValueEventListener() {
+        database.getReference().child("users").child(hostId).child("queue").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+                modelClassList.clear();
+                Map<Integer, String> snapshotMap = (Map<Integer, String>) dataSnapshot.getValue();
+                if (snapshotMap!=null){
+                    Collection<String> queueSongObjects =  snapshotMap.values();
+                    for (String songId : queueSongObjects){
+                        ModelClass object;
+                        ModelClass songMeta = songIdToMetaMap.get(songId);
+                        if(null==songMeta){
+                            object = new ModelClass(songId, "", songId, "");
+                        }
+                        else{
+                            object = songIdToMetaMap.get(songId);
+                        }
+                        modelClassList.add(object);
+                        queueAdapter.notifyDataSetChanged();
 
-                List<String> queue = (List<String>) dataSnapshot.getValue();
-                String q = "";
-                for (String s : queue) {
-                    q += s + " # ";
+                    }
                 }
+
             }
 
             @Override
@@ -251,9 +253,10 @@ public class PartyActivity extends AppCompatActivity {
 
     }
 
-    public void getContentFromApi() {
+
+    public void SearchApi() {
         NetworkService.getInstance()
-                .getJSONApi()
+                .getSearchApi()
                 .getSearchResults("dilbar")
                 .enqueue(new Callback<SearchResponse>() {
 
@@ -267,7 +270,8 @@ public class PartyActivity extends AppCompatActivity {
                                 break;
                             }
                         }
-                        songItem.getItems();
+
+                        list.addAll(songItem.getItems());
                     }
 
                     @Override
@@ -286,5 +290,82 @@ public class PartyActivity extends AppCompatActivity {
         clipboardManager.setPrimaryClip(clipData);
     }
 
+    public void setDeepLinkState(){
+        copyButton = findViewById(R.id.copyButton);
+        copyLinkTextView = findViewById(R.id.copyLinkText);
+        copyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                copyToClipboard(copyLinkTextView.getText().toString());
+            }
+        });
 
+        if (isHost) {
+            copyLinkTextView.setText(getDeeplLink(userId));
+        } else {
+            copyLinkTextView.setVisibility(View.GONE);
+            copyButton.setVisibility(View.GONE);
+        }
+    }
+
+
+    public void searchApi(String query) {
+        NetworkService.getInstance()
+                .getSearchApi()
+                .getSearchResults(query)
+                .enqueue(new Callback<SearchResponse>() {
+
+                    @Override
+                    public void onResponse(Call<SearchResponse> call, Response<SearchResponse> response) {
+                        SearchResponse searchResponse = response.body();
+                        Item songItem = null;
+                        for (Item item : searchResponse.getItems()) {
+                            if ("SONG".equals(item.getId())) {
+                                songItem = item;
+                                break;
+                            }
+                        }
+                        list.addAll(songItem.getItems());
+                        searchAdapter.notifyDataSetChanged();
+
+//                        Log.e(TAG, songItem.getItems().toString());
+                        searchApiHandler(songItem.getItems());
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<SearchResponse> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
+
+    void searchApiHandler(List<Song> searchResult){
+
+//        getContentPlaybackApi(searchResult.get(1).getId());
+    }
+
+    public void getContentPlaybackApi(String songId) {
+        NetworkService.getInstance()
+                .getContentApi()
+                .getPlaybackResult(songId, "daTr6PpO1NmAesWNG67VK8rE95s2:f9eETGydcRMJ998KWd0ErjnTdIw=", "0203ac820c37ce23/Android/28/188/2.0.7.1")
+                .enqueue(new Callback<ContentPlaybackPojo>() {
+
+                    @Override
+                    public void onResponse(Call<ContentPlaybackPojo> call, Response<ContentPlaybackPojo> response) {
+                        ContentPlaybackPojo contentPlaybackResponse = response.body();
+                        playSong(contentPlaybackResponse.getUrl());
+                    }
+
+
+                    @Override
+                    public void onFailure(Call<ContentPlaybackPojo> call, Throwable t) {
+                        Log.d(TAG, t.getLocalizedMessage());
+                    }
+                });
+    }
+
+    void playSong(String contentPlaybackUrl) {
+        Log.e(TAG, contentPlaybackUrl);
+    }
 }

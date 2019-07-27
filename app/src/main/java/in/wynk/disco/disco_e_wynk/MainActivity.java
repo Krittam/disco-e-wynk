@@ -13,7 +13,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Button;
 import android.widget.TextView;
 
+import java.util.List;
 import java.util.UUID;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -49,7 +54,17 @@ public class MainActivity extends AppCompatActivity {
 
         setUid(this);
 
+
     }
+
+
+
+//    void contentHandler(String oStreamingUrl){
+//        Log.e(TAG, oStreamingUrl);
+//        getContentPlaybackApi(oStreamingUrl);
+//    }
+
+
 
     public static void setUid(Context ctx) {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
@@ -67,6 +82,32 @@ public class MainActivity extends AppCompatActivity {
         mPreferences = PreferenceManager.getDefaultSharedPreferences(ctx);
         return mPreferences.getString("uid", null);
     }
+
+
+
+
+//    public void getContentFromApi(final String songId) {
+//        NetworkService.getInstance()
+//                .getContentApi()
+//                .getContentResult(songId, "song", "en")
+//                .enqueue(new Callback<ContentPojo>() {
+//
+//                    @Override
+//                    public void onResponse(Call<ContentPojo> call, Response<ContentPojo> response) {
+//                        ContentPojo contentResponse = response.body();
+//
+//
+////                        Log.e(TAG, contentResponse.getOstreamingUrl().toString());
+//                        contentHandler(songId, contentResponse.getOstreamingUrl());
+//                    }
+//
+//
+//                    @Override
+//                    public void onFailure(Call<ContentPojo> call, Throwable t) {
+//                        Log.d(TAG, t.getLocalizedMessage());
+//                    }
+//                });
+//    }
 
 
 }
