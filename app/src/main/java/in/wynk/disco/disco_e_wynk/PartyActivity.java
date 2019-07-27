@@ -5,6 +5,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
+import android.opengl.Visibility;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -19,6 +20,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
@@ -129,8 +131,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
 
             exoPlayerView.setPlayer(exoPlayer);
             exoPlayer.prepare(Fsource);
-            //exoPlayer.prepare(Ssource);
-            //exoPlayer.prepare(concatenatedSource);
+
             if(url==""){
                 exoPlayer.setPlayWhenReady(false);
             }
@@ -140,19 +141,10 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
 
             exoPlayerView.setControllerHideOnTouch(false);
             exoPlayerView.setControllerShowTimeoutMs(0);
-            //exoPlayerView.setUseController(true);
+            exoPlayerView.setUseController(true);
 
 
-            //    BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
-            //    final ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
-            //    TrackSelection.Factory trackSelectionFactory = new AdaptiveTrackSelection.Factory(bandwidthMeter);
-            //   // DataSource.Factory dateSourceFactory = new DefaultDataSourceFactory();
-            //    DefaultHttpDataSourceFactory dataSourceFactory=new DefaultHttpDataSourceFactory("exo-player");
-            //    MediaSource mediaSource = new ExtractorMediaSource(Uri.parse("http://play.wynk.in/srch_unisysinfo/music/128/1528715656/srch_unisysinfo_M09050867.mp3?token=1564146430_f03aa48f3e5a76ef2275d371ab23c2e5"), dataSourceFactory, extractorsFactory,null,null);    // replace Uri with your song url
-            //    exoPlayer = ExoPlayerFactory.newSimpleInstance(this, new DefaultTrackSelector(trackSelectionFactory));
-            //    exoPlayerView.setPlayer(exoPlayer);
-            //    exoPlayer.prepare(mediaSource);
-            //    exoPlayer.setPlayWhenReady(false);
+
         } catch (Exception e) {
             Log.e("Exoplayer error:", e.toString());
         }
@@ -164,6 +156,8 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         list = new ArrayList<>();
         searchAdapter = new ArrayAdapter<Song>(context, android.R.layout.simple_list_item_1,list);
         listView.setAdapter(searchAdapter);
+
+        searchView.setVisibility(View.VISIBLE);
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
@@ -364,7 +358,16 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
     void playSong(String contentPlaybackUrl) {
         Log.e(TAG, contentPlaybackUrl);
         url=contentPlaybackUrl;
+        if (exoPlayer != null) {
+          // playbackPosition = exoPlayer.getCurrentPosition();
+          //  currentWindow = exoPlayer.getCurrentWindowIndex();
+          // playWhenReady = exoPlayer.getPlayWhenReady();
+            exoPlayer.release();
+            exoPlayer = null;
+
+        }
         exoPlayerfunc();
+
 
     }
 }
