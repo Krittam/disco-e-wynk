@@ -81,7 +81,7 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
         protected void onCreate(Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.activity_party);
-
+            userId = MainActivity.getUid(this);
             Uri data = getIntent().getData();
             if (data != null) {
                 isHost = false;
@@ -90,13 +90,14 @@ public class PartyActivity extends AppCompatActivity implements Adapter.OnPlayCl
             }
             else{
                 isHost = getIntent().getExtras().getBoolean("isHost", true);
+                hostId = userId;
             }
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(RecyclerView.VERTICAL);
 
         MainActivity.setUid(this);
-        userId = MainActivity.getUid(this);
-        hostId = userId;
+
+
         database = FirebaseDatabase.getInstance();
         context=this;
         clipboardManager = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
